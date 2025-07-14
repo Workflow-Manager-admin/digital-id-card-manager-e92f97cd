@@ -32,7 +32,7 @@ _Tip:_ Use `startup.sh` to automate DB/user/schema creation (see script output f
 
 ## 🗄️ Core Tables
 
-- **users**: Auth credentials and profile info (single generic type; no roles)
+- **users**: Auth credentials and profile info (all users are generic—there are no roles)
 - **digital_id_cards**: Digital card and holder info (holder, number, etc.)
 - **id_card_links**: Links users to cards (used for primary card relationship)
 
