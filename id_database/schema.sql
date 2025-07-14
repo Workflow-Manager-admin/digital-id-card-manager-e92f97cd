@@ -1,0 +1,77 @@
+-- Digital ID Card Manager PostgreSQL Schema
+-- Features: users (with authentication), roles, digital ID cards, unique number linking
+
+-- Clean up before initialization (FOR DEV USE ONLY—REMOVE IN PROD MIGRATION)
+DROP TABLE IF EXISTS id_card_links CASCADE;
+DROP TABLE IF EXISTS digital_id_cards CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+
+-- ROLES table
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(32) UNIQUE NOT NULL,
+    description VARCHAR(128)
+);
+
+-- USERS table (for both admins and holders)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    email VARCHAR(128) NOT NULL UNIQUE,
+    password_hash VARCHAR(256) NOT NULL,
+    full_name VARCHAR(128),
+    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- DIGITAL ID CARDS table (profile info, unique number)
+CREATE TABLE digital_id_cards (
+    id SERIAL PRIMARY KEY,
+    card_number VARCHAR(32) NOT NULL UNIQUE,
+    holder_name VARCHAR(128) NOT NULL,
+    date_of_birth DATE,
+    address TEXT,
+    phone VARCHAR(32),
+    photo_url TEXT,
+    issued_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    expires_date DATE,
+    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- HOLDER-CARD LINK table: links users (holders) to their cards, allows many-to-many if required
+CREATE TABLE id_card_links (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    card_id INTEGER NOT NULL REFERENCES digital_id_cards(id) ON DELETE CASCADE,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    linked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, card_id)
+);
+
+-- Example: Unique constraint for only one primary card per user
+CREATE UNIQUE INDEX one_primary_card_per_user ON id_card_links(user_id) WHERE is_primary;
+
+-- Triggers: Update updated_at on users and digital_id_cards
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.updated_at = CURRENT_TIMESTAMP;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_updated_at BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
+CREATE TRIGGER cards_updated_at BEFORE UPDATE ON digital_id_cards
+FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
+-- Indexes for fast lookup (optional for most-accessed fields)
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_card_links_user ON id_card_links(user_id);
+CREATE INDEX idx_cards_card_number ON digital_id_cards(card_number);
