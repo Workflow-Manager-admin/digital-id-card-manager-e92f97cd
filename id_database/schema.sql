@@ -2,12 +2,12 @@
 -- Features: users (with authentication), digital ID cards, unique number linking
 -- Role-based login REMOVED. All accounts are generic users.
 
--- Clean up before initialization (FOR DEV USE ONLY—REMOVE IN PROD MIGRATION)
+-- CLEAN SLATE: Drop previous tables for dev/testing. Remove or comment in production.
 DROP TABLE IF EXISTS id_card_links CASCADE;
 DROP TABLE IF EXISTS digital_id_cards CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- USERS table (generic, no role)
+-- USERS table (generic, no role distinction)
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(64) NOT NULL UNIQUE,
@@ -15,8 +15,8 @@ CREATE TABLE users (
     password_hash VARCHAR(256) NOT NULL,
     full_name VARCHAR(128),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- DIGITAL ID CARDS table (profile info, unique number)
@@ -31,24 +31,24 @@ CREATE TABLE digital_id_cards (
     issued_date DATE NOT NULL DEFAULT CURRENT_DATE,
     expires_date DATE,
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- HOLDER-CARD LINK table: links users to cards, allows many-to-many if required
+-- HOLDER-CARD LINK table (many-to-many)
 CREATE TABLE id_card_links (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     card_id INTEGER NOT NULL REFERENCES digital_id_cards(id) ON DELETE CASCADE,
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
-    linked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    linked_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, card_id)
 );
 
--- Example: Unique constraint for only one primary card per user
+-- One primary card per user
 CREATE UNIQUE INDEX one_primary_card_per_user ON id_card_links(user_id) WHERE is_primary;
 
--- Triggers: Update updated_at on users and digital_id_cards
+-- Updated_at triggers
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -63,7 +63,7 @@ FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 CREATE TRIGGER cards_updated_at BEFORE UPDATE ON digital_id_cards
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
--- Indexes for fast lookup (optional for most-accessed fields)
+-- Useful indexes
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_card_links_user ON id_card_links(user_id);
 CREATE INDEX idx_cards_card_number ON digital_id_cards(card_number);

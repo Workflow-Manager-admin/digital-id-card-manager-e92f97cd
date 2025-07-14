@@ -1,6 +1,6 @@
 -- Minimal seed data for Digital ID Card Manager (generic users only, no roles)
 
--- Add a sample user (password hash is 'test' with bcrypt cost 12 for illustration)
+-- Add a sample admin user (password hash is bcrypt "test", cost 12)
 INSERT INTO users (username, email, password_hash, full_name)
 VALUES (
     'adminuser',
