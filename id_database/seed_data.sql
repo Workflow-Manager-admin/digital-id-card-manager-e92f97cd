@@ -1,29 +1,21 @@
--- Minimal seed data for Digital ID Card Manager
+-- Minimal seed data for Digital ID Card Manager (generic users only, no roles)
 
--- Populate roles
-INSERT INTO roles (name, description) VALUES
-('admin', 'Administrator user'),
-('user', 'Normal application user'),
-('holder', 'User who holds a digital ID card');
-
--- Add a sample admin user (password hash is just "test" with bcrypt cost 12 for illustration)
-INSERT INTO users (username, email, password_hash, full_name, role_id)
+-- Add a sample user (password hash is 'test' with bcrypt cost 12 for illustration)
+INSERT INTO users (username, email, password_hash, full_name)
 VALUES (
     'adminuser',
     'admin@example.com',
     '$2b$12$cU8R5z7jHDNSr8c71TAy8.Z2mEvEZFjbFi/fKa.huT3UPXSG83eUO',
-    'Admin Person',
-    (SELECT id FROM roles WHERE name = 'admin')
+    'Admin Person'
 );
 
--- Add a sample holder user
-INSERT INTO users (username, email, password_hash, full_name, role_id)
+-- Add a standard user
+INSERT INTO users (username, email, password_hash, full_name)
 VALUES (
     'janedoe',
     'jane@example.com',
     '$2b$12$somesamplehashforjanedoe',
-    'Jane Doe',
-    (SELECT id FROM roles WHERE name = 'holder')
+    'Jane Doe'
 );
 
 -- Create a digital ID card for Jane Doe

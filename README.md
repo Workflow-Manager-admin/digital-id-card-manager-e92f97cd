@@ -8,13 +8,13 @@ PostgreSQL Database for Digital ID Card Manager.
 
 The backend API and any database visualizer tools use these environment variables for DB connection:
 
-| Variable         | Purpose                                | Example                        |
-|------------------|----------------------------------------|--------------------------------|
-| POSTGRES_URL     | PostgreSQL host/address                | postgresql://localhost:5000/myapp |
-| POSTGRES_USER    | DB user                                | appuser                        |
-| POSTGRES_PASSWORD| DB password                            | dbuser123                      |
-| POSTGRES_DB      | DB name                                | myapp                          |
-| POSTGRES_PORT    | Port (default: 5000)                   | 5000                           |
+| Variable         | Purpose                                | Example                            |
+|------------------|----------------------------------------|------------------------------------|
+| POSTGRES_URL     | PostgreSQL host/address                | postgresql://localhost:5000/myapp  |
+| POSTGRES_USER    | DB user                                | appuser                            |
+| POSTGRES_PASSWORD| DB password                            | dbuser123                          |
+| POSTGRES_DB      | DB name                                | myapp                              |
+| POSTGRES_PORT    | Port (default: 5000)                   | 5000                               |
 
 - These are preset in `id_database/db_visualizer/postgres.env`
 - Also copied into `id_backend_api/.env` for the Flask API backend.
@@ -24,7 +24,7 @@ The backend API and any database visualizer tools use these environment variable
 ## 🏗️ Schema Migration
 
 1. Run `id_database/schema.sql` in your PostgreSQL instance to initialize tables.
-2. Optionally, load `seed_data.sql` for test users/cards/roles.
+2. Optionally, load `seed_data.sql` for test users/cards.
 
 _Tip:_ Use `startup.sh` to automate DB/user/schema creation (see script output for connection info).
 
@@ -32,8 +32,7 @@ _Tip:_ Use `startup.sh` to automate DB/user/schema creation (see script output f
 
 ## 🗄️ Core Tables
 
-- **roles**: RBAC (admin, user, holder, etc.)
-- **users**: Auth credentials and profile info, links to roles
+- **users**: Auth credentials and profile info (single generic type; no roles)
 - **digital_id_cards**: Digital card and holder info (holder, number, etc.)
 - **id_card_links**: Links users to cards (used for primary card relationship)
 

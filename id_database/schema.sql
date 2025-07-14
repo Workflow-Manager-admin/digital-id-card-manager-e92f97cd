@@ -1,27 +1,19 @@
 -- Digital ID Card Manager PostgreSQL Schema
--- Features: users (with authentication), roles, digital ID cards, unique number linking
+-- Features: users (with authentication), digital ID cards, unique number linking
+-- Role-based login REMOVED. All accounts are generic users.
 
 -- Clean up before initialization (FOR DEV USE ONLY—REMOVE IN PROD MIGRATION)
 DROP TABLE IF EXISTS id_card_links CASCADE;
 DROP TABLE IF EXISTS digital_id_cards CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS roles CASCADE;
 
--- ROLES table
-CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(32) UNIQUE NOT NULL,
-    description VARCHAR(128)
-);
-
--- USERS table (for both admins and holders)
+-- USERS table (generic, no role)
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(64) NOT NULL UNIQUE,
     email VARCHAR(128) NOT NULL UNIQUE,
     password_hash VARCHAR(256) NOT NULL,
     full_name VARCHAR(128),
-    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -38,12 +30,12 @@ CREATE TABLE digital_id_cards (
     photo_url TEXT,
     issued_date DATE NOT NULL DEFAULT CURRENT_DATE,
     expires_date DATE,
-    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- HOLDER-CARD LINK table: links users (holders) to their cards, allows many-to-many if required
+-- HOLDER-CARD LINK table: links users to cards, allows many-to-many if required
 CREATE TABLE id_card_links (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
