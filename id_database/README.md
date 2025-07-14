@@ -14,7 +14,10 @@ The backend API and any DB visualizer tools use these environment variables:
 | POSTGRES_DB        | DB name                      | myapp                              |
 | POSTGRES_PORT      | Port (default: 5000)         | 5000                               |
 
-These variables are preset in `db_visualizer/postgres.env` and should also be set in any backend `.env` files.
+These variables are preset in `db_visualizer/postgres.env`.
+
+- For Docker/local development, copy `.env.example` to `.env` and edit as needed.
+- Backend API containers should also import these same variable names for a direct connection.
 
 ## 🏗️ Schema/Migration
 
